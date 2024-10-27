@@ -40,3 +40,16 @@ Note: Make relevant config changes in tsconfig.json
 ```
 npm run dev
 ```
+
+## To start redis server
+
+1.
+
+```
+ubuntu
+```
+
+2. 
+```
+sudo service redis-server start
+```
