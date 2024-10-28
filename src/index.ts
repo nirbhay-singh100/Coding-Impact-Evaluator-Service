@@ -5,6 +5,12 @@ import apiRouter from "./routes";
 import sampleQueueProducer from "./producers/sampleQueueProducer";
 import SampleWorker from "./workers/sampleWorker";
 
+// Bull board imports
+import { createBullBoard } from "@bull-board/api";
+import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
+import { ExpressAdapter } from "@bull-board/express";
+import SampleQueue  from "./queues/sampleQueue";
+
 const app: Express = express();
 
 app.use(bodyParser.urlencoded());
@@ -18,16 +24,25 @@ app.listen(serverConfig.PORT, () => {
 
     SampleWorker("SampleQueue");
 
+    const serverAdapter = new ExpressAdapter();
+    serverAdapter.setBasePath("/ui");
+
+    createBullBoard({
+        queues: [new BullMQAdapter(SampleQueue)],
+        serverAdapter,
+    })
+
+    app.use("/ui", serverAdapter.getRouter());
+
     sampleQueueProducer("SampleJob", {
-        name: "nirbhay",
+        name: "shraddha",
+        college: "Yenopoya",
+        branch: "ISE"
+    })
+    sampleQueueProducer("SampleJob", {
+        name: "ankita",
         college: "chandigarh university",
         branch: "cse"
     })
-    sampleQueueProducer("SampleJob", {
-        name: "harshit",
-        college: "chandigarh university",
-        branch: "cse"
-    })
-    
-     
+
 })
