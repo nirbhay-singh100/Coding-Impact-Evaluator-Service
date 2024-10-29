@@ -9,7 +9,9 @@ import SampleWorker from "./workers/sampleWorker";
 import { createBullBoard } from "@bull-board/api";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { ExpressAdapter } from "@bull-board/express";
-import SampleQueue  from "./queues/sampleQueue";
+import SampleQueue from "./queues/sampleQueue";
+
+import runPython from "./containers/runPythonDocker";
 
 const app: Express = express();
 
@@ -22,27 +24,34 @@ app.use("/api", apiRouter);
 app.listen(serverConfig.PORT, () => {
     console.log(`server is running on port ${serverConfig.PORT}`);
 
+
+
     SampleWorker("SampleQueue");
 
-    const serverAdapter = new ExpressAdapter();
-    serverAdapter.setBasePath("/ui");
+    const code = `x=input()\ny=input()\nprint(int(x)+int(y))`;
 
-    createBullBoard({
-        queues: [new BullMQAdapter(SampleQueue)],
-        serverAdapter,
-    })
+    const inputTestCase = `100\n200`;
+    runPython(code,inputTestCase);
 
-    app.use("/ui", serverAdapter.getRouter());
+    // const serverAdapter = new ExpressAdapter();
+    // serverAdapter.setBasePath("/ui");
 
-    sampleQueueProducer("SampleJob", {
-        name: "shraddha",
-        college: "Yenopoya",
-        branch: "ISE"
-    })
-    sampleQueueProducer("SampleJob", {
-        name: "ankita",
-        college: "chandigarh university",
-        branch: "cse"
-    })
+    // createBullBoard({
+    //     queues: [new BullMQAdapter(SampleQueue)],
+    //     serverAdapter,
+    // })
+
+    // app.use("/ui", serverAdapter.getRouter());
+
+    // sampleQueueProducer("SampleJob", {
+    //     name: "shraddha",
+    //     college: "Yenopoya",
+    //     branch: "ISE"
+    // })
+    // sampleQueueProducer("SampleJob", {
+    //     name: "ankita",
+    //     college: "chandigarh university",
+    //     branch: "cse"
+    // })
 
 })
