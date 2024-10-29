@@ -36,18 +36,24 @@ async function runPython(code: string, inputTestCase: string) {
         rawLogBuffer.push(chunk);
     })
 
-    loggerStream.on("end", () => {
-        //console.log(rawLogBuffer);
+    // once the logs are received and decoded we will return a promise to come out to further delete container
+    await new Promise((res) => {
+        loggerStream.on("end", () => {
+            //console.log(rawLogBuffer);
 
-        // Buffer has a constructor when we pass array fo buffer it create a complete buffer
-        const completeBuffer = Buffer.concat(rawLogBuffer);
-        const decodedStream = decodeDockerStream(completeBuffer);
-        console.log(decodedStream);
-        console.log(decodedStream.stdout);
-        
-    })
+            // Buffer has a constructor when we pass array fo buffer it create a complete buffer
+            const completeBuffer = Buffer.concat(rawLogBuffer);
+            const decodedStream = decodeDockerStream(completeBuffer);
+            console.log(decodedStream);
+            console.log(decodedStream.stdout);
+            res(decodeDockerStream);
+  
+        });
+    }); 
     
-    return pythonDockerContainer;
+    // delete the docker container
+    await pythonDockerContainer.remove();
+    
 }
 
 export default runPython;
