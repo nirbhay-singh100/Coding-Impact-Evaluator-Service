@@ -13,6 +13,10 @@ import SampleQueue from "./queues/sampleQueue";
 
 import runJava from "./containers/runJavaContainer";
 import runCpp from "./containers/runCppConatiner";
+import SubmissionWorker from "./workers/submissionWorker";
+import { SUBMISSION_QUEUE } from "./utils/constants";
+import submissionQueueProducer from "./producers/submissionQueueProducer";
+import submissionQueue from "./queues/submissionQueue";
 
 const app: Express = express();
 
@@ -45,18 +49,31 @@ app.listen(serverConfig.PORT, () => {
     }
     `;
 
-    const inputTestCase = `20`;
-    runCpp(code,inputTestCase);
+    const inputTestCase = `30`;
 
-    // const serverAdapter = new ExpressAdapter();
-    // serverAdapter.setBasePath("/ui");
+    SubmissionWorker(SUBMISSION_QUEUE);
 
-    // createBullBoard({
-    //     queues: [new BullMQAdapter(SampleQueue)],
-    //     serverAdapter,
-    // })
+    const serverAdapter = new ExpressAdapter();
+    serverAdapter.setBasePath("/ui");
 
-    // app.use("/ui", serverAdapter.getRouter());
+    createBullBoard({
+        queues: [new BullMQAdapter(submissionQueue)],
+        serverAdapter,
+    })
+
+    app.use("/ui", serverAdapter.getRouter());
+
+    submissionQueueProducer({
+        "1234": {
+            language: 'CPP',
+            code: code,
+            inputTestCase: inputTestCase
+            
+    }})
+
+    
+
+    
 
     // sampleQueueProducer("SampleJob", {
     //     name: "shraddha",
