@@ -1,36 +1,39 @@
 import Docker from "dockerode"
 import { TestCases } from "../types/testCases";
 import createContainer from "./containerFactory"
-import { PYTHON_IMAGE } from "../utils/constants";
+import { CPP_IMAGE } from "../utils/constants";
 import decodeDockerStream from "./dockerHelper";
 import pullImage from "./pullImage";
 
-async function runPython(code: string, inputTestCase: string) {
+async function runCpp(code: string, inputTestCase: string) {
 
     const rawLogBuffer: Buffer[] = [];
 
-    
     // TO PULL THE IMAGE
     console.log("Please wait till we download the required docker image, this might take few moments");
-    await pullImage(PYTHON_IMAGE);
+    await pullImage(CPP_IMAGE);
 
+    console.log("intialising the new Cpp container");
 
-    console.log("intialising the new python container");
-
-    const runCommand = `echo '${code.replace(/'/g, `'\\"`)}' > test.py && echo '${inputTestCase.replace(/'/g, `'\\"`)}' | python3 test.py `
+    // both will work
+    //const runCommand = `echo '${code.replace(/'/g, `'\\"`)}' > test.cpp && g++ test.cpp -o abc.exe && echo '${inputTestCase.replace(/'/g, `'\\"`)}' | ./abc.exe`
+    const runCommand = `echo '${code.replace(/'/g, `'\\"`)}' > test.cpp && g++ test.cpp -o abc && echo '${inputTestCase.replace(/'/g, `'\\"`)}' | ./abc`
 
     //console.log(runCommand);
     //const pythonDockerContainer = await createContainer(PYTHON_IMAGE, ["python3", "-c", code, 'stty -echo']);
 
-    const pythonDockerContainer = await createContainer(PYTHON_IMAGE, ['/bin/sh', '-c', runCommand]);
+    const cppDockerContainer = await createContainer(CPP_IMAGE, [
+        '/bin/sh',
+        '-c',
+        runCommand]);
     
-    // starting or booting the python docker container
+    // starting or booting the cpp docker container
 
-    await pythonDockerContainer.start();
+    await cppDockerContainer.start();
 
     console.log("Started the docker container");
 
-    const loggerStream = await pythonDockerContainer.logs({
+    const loggerStream = await cppDockerContainer.logs({
         stdout: true,
         stderr: true,
         timestamps: true,
@@ -52,15 +55,15 @@ async function runPython(code: string, inputTestCase: string) {
             const completeBuffer = Buffer.concat(rawLogBuffer);
             const decodedStream = decodeDockerStream(completeBuffer);
             console.log(decodedStream);
-            console.log(decodedStream.stdout);
+            //console.log(decodedStream.stdout);
             res(decodeDockerStream);
   
         });
     }); 
     
     // delete the docker container
-    await pythonDockerContainer.remove();
+    await cppDockerContainer.remove();
     
 }
 
-export default runPython;
+export default runCpp;

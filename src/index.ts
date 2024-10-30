@@ -11,7 +11,8 @@ import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { ExpressAdapter } from "@bull-board/express";
 import SampleQueue from "./queues/sampleQueue";
 
-import runPython from "./containers/runPythonDocker";
+import runJava from "./containers/runJavaContainer";
+import runCpp from "./containers/runCppConatiner";
 
 const app: Express = express();
 
@@ -26,12 +27,26 @@ app.listen(serverConfig.PORT, () => {
 
 
 
-    SampleWorker("SampleQueue");
+    //SampleWorker("SampleQueue");
 
-    const code = `x=input()\ny=input()\nprint(int(x)+int(y))`;
+    const code = `
+    #include<iostream>
+    using namespace std;
 
-    const inputTestCase = `100\n200`;
-    runPython(code,inputTestCase);
+    int main(){
+
+        int x;
+        cin>>x;
+
+        for(int i=0;i<=x;i++){
+            cout<<i<<endl;
+        }
+        return 0;
+    }
+    `;
+
+    const inputTestCase = `20`;
+    runCpp(code,inputTestCase);
 
     // const serverAdapter = new ExpressAdapter();
     // serverAdapter.setBasePath("/ui");

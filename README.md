@@ -53,3 +53,11 @@ ubuntu
 ```
 sudo service redis-server start
 ```
+
+## To run Pyhton Container
+
+1.
+
+```
+docker pull python:3.8-slim
+```

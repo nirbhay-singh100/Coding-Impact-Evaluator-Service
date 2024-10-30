@@ -1,36 +1,37 @@
 import Docker from "dockerode"
 import { TestCases } from "../types/testCases";
 import createContainer from "./containerFactory"
-import { PYTHON_IMAGE } from "../utils/constants";
+import { JAVA_IMAGE } from "../utils/constants";
 import decodeDockerStream from "./dockerHelper";
 import pullImage from "./pullImage";
 
-async function runPython(code: string, inputTestCase: string) {
+async function runJava(code: string, inputTestCase: string) {
 
     const rawLogBuffer: Buffer[] = [];
 
-    
     // TO PULL THE IMAGE
     console.log("Please wait till we download the required docker image, this might take few moments");
-    await pullImage(PYTHON_IMAGE);
+    await pullImage(JAVA_IMAGE);
 
+    console.log("intialising the new Java container");
 
-    console.log("intialising the new python container");
-
-    const runCommand = `echo '${code.replace(/'/g, `'\\"`)}' > test.py && echo '${inputTestCase.replace(/'/g, `'\\"`)}' | python3 test.py `
+    const runCommand = `echo '${code.replace(/'/g, `'\\"`)}' > Main.java && javac Main.java && echo '${inputTestCase.replace(/'/g, `'\\"`)}' | java Main`
 
     //console.log(runCommand);
     //const pythonDockerContainer = await createContainer(PYTHON_IMAGE, ["python3", "-c", code, 'stty -echo']);
 
-    const pythonDockerContainer = await createContainer(PYTHON_IMAGE, ['/bin/sh', '-c', runCommand]);
+    const javaDockerContainer = await createContainer(JAVA_IMAGE, [
+        '/bin/sh',
+        '-c',
+        runCommand]);
     
-    // starting or booting the python docker container
+    // starting or booting the java docker container
 
-    await pythonDockerContainer.start();
+    await javaDockerContainer.start();
 
     console.log("Started the docker container");
 
-    const loggerStream = await pythonDockerContainer.logs({
+    const loggerStream = await javaDockerContainer.logs({
         stdout: true,
         stderr: true,
         timestamps: true,
@@ -52,15 +53,16 @@ async function runPython(code: string, inputTestCase: string) {
             const completeBuffer = Buffer.concat(rawLogBuffer);
             const decodedStream = decodeDockerStream(completeBuffer);
             console.log(decodedStream);
-            console.log(decodedStream.stdout);
+            //console.log(decodedStream.stdout);
             res(decodeDockerStream);
   
         });
     }); 
     
     // delete the docker container
-    await pythonDockerContainer.remove();
+    await javaDockerContainer.remove();
     
 }
 
-export default runPython;
+export default runJava;
+
